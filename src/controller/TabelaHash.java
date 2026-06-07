@@ -23,10 +23,10 @@ public class TabelaHash {
         int indice = funcaoHash(disciplina.getCodigo());
         ListaEncadeada<Disciplina> lista = tabela[indice];
 
-        // Evita duplicados na mesma posição da tabela
+        // Evita duplicados
         for (int i = 0; i < lista.size(); i++) {
             if (lista.get(i).getCodigo() == disciplina.getCodigo()) {
-                return; // Ignora se já estiver na tabela
+                return;
             }
         }
         lista.addLast(disciplina);

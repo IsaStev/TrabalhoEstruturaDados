@@ -6,10 +6,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import model.Professor;
+import model.Inscricao;
 
 public class ProfessorController {
 
     private final String caminhoArquivo = "data" + File.separator + "professor.csv";
+    // Adicionado o caminho das inscrições para a remoção em cascata
+    private final String caminhoInscricoes = "data" + File.separator + "inscricoes.csv";
 
     public ProfessorController() {
         try {
@@ -95,6 +98,7 @@ public class ProfessorController {
 
         if (isRemocao) {
             lista.remove(posicaoAlvo);
+            removerInscricoesEmCascata(cpfAlvo); // Chamada da remoção em cascata
         } else {
             if (profAtualizado.getNome() == null || profAtualizado.getNome().trim().isEmpty()) {
                 throw new Exception("Os campos modificados não podem ser vazios!");
@@ -108,6 +112,41 @@ public class ProfessorController {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, false))) {
             for (int i = 0; i < lista.size(); i++) {
                 bw.write(lista.get(i).toString());
+                bw.newLine();
+            }
+        }
+    }
+
+    // --- NOVO MÉTODO: Limpa as inscrições quando o professor for apagado ---
+    private void removerInscricoesEmCascata(String cpfProfessorAlvo) throws Exception {
+        File arquivoInsc = new File(caminhoInscricoes);
+        if (!arquivoInsc.exists()) return;
+
+        String linha;
+        ListaEncadeada<Inscricao> listaInsc = new ListaEncadeada<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(caminhoInscricoes))) {
+            while ((linha = br.readLine()) != null) {
+                if (linha.trim().isEmpty()) continue;
+                String[] partes = linha.split(";");
+                Inscricao insc = new Inscricao();
+                insc.setCpfProfessor(partes[0]);
+                insc.setCodigoDisciplina(Integer.parseInt(partes[1]));
+                insc.setCodigoProcesso(Integer.parseInt(partes[2]));
+                listaInsc.addLast(insc);
+            }
+        }
+
+        // Remove de trás para frente para não bagunçar os índices da lista
+        for (int i = listaInsc.size() - 1; i >= 0; i--) {
+            if (listaInsc.get(i).getCpfProfessor().equals(cpfProfessorAlvo)) {
+                listaInsc.remove(i);
+            }
+        }
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoInscricoes, false))) {
+            for (int i = 0; i < listaInsc.size(); i++) {
+                bw.write(listaInsc.get(i).toString());
                 bw.newLine();
             }
         }
