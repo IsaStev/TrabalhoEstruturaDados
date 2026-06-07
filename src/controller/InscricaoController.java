@@ -14,6 +14,7 @@ public class InscricaoController {
     public InscricaoController() {
         try {
             File arquivo = new File(caminhoArquivo);
+            arquivo.getParentFile().mkdirs();
             if (!arquivo.exists()) {
                 arquivo.createNewFile();
             }

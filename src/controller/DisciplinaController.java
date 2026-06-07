@@ -16,6 +16,7 @@ public class DisciplinaController {
     public DisciplinaController() {
         try {
             File arquivo = new File(caminhoArquivo);
+            arquivo.getParentFile().mkdirs();
             if (!arquivo.exists()) {
                 arquivo.createNewFile();
             }

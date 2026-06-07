@@ -14,6 +14,7 @@ public class ProfessorController {
     public ProfessorController() {
         try {
             File arquivo = new File(caminhoArquivo);
+            arquivo.getParentFile().mkdirs();
             if (!arquivo.exists()) {
                 arquivo.createNewFile();
             }

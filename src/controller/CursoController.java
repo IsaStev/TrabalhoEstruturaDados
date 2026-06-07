@@ -16,6 +16,7 @@ public class CursoController {
         // Garante que o arquivo exista ao iniciar o controlador
         try {
             File arquivo = new File(caminhoArquivo);
+            arquivo.getParentFile().mkdirs();
             if (!arquivo.exists()) {
                 arquivo.createNewFile();
             }
