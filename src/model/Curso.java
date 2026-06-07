@@ -11,7 +11,15 @@ public class Curso {
 		
 	}
 	
-	public String toString() {
+	// Construtor com parâmetros
+    public Curso(int codigo, String nome, String areaConhecimento) {
+        this.codigo = codigo;
+        this.nome = nome;
+        this.areaConhecimento = areaConhecimento;
+    }
+    
+    @Override
+    public String toString() {
         return codigo + ";" + nome + ";" + areaConhecimento;
     }
 }
