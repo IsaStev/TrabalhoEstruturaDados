@@ -99,4 +99,64 @@ public class InscricaoController {
             }
         }
     }
+    
+ // CONSULTA AVANÇADA: Retorna uma lista de professores inscritos ordenada por pontuação
+    public ListaEncadeada<model.Professor> listarInscritosOrdenados(int codigoDisciplinaAlvo) throws Exception {
+        ListaEncadeada<model.Professor> listaInscritos = new ListaEncadeada<>();
+        
+        // 1. Carrega todas as inscrições que batem com a disciplina escolhida
+        Fila<Inscricao> todasInscricoes = listarInscricoes();
+        ListaEncadeada<Inscricao> inscricoesFiltradas = new ListaEncadeada<>();
+        
+        while (!todasInscricoes.isEmpty()) {
+            Inscricao insc = todasInscricoes.remove();
+            if (insc.codigoDisciplina == codigoDisciplinaAlvo) {
+                inscricoesFiltradas.addLast(insc);
+            }
+        }
+
+        // 2. Para cada inscrição filtrada, busca os dados completos do professor no arquivo
+        ProfessorController profCtrl = new ProfessorController();
+        for (int i = 0; i < inscricoesFiltradas.size(); i++) {
+            String cpfInscrito = inscricoesFiltradas.get(i).cpfProfessor;
+            
+            // Busca o professor na fila de professores
+            Fila<model.Professor> todosProfessores = profCtrl.listarProfessores();
+            while (!todosProfessores.isEmpty()) {
+                model.Professor prof = todosProfessores.remove();
+                if (prof.cpf.equals(cpfInscrito)) {
+                    listaInscritos.addLast(prof);
+                    break;
+                }
+            }
+        }
+
+     // 3. Algoritmo de Ordenação Manual (Bubble Sort) - Decrescente
+        int tamanho = listaInscritos.size();
+        for (int i = 0; i < tamanho - 1; i++) {
+            for (int j = 0; j < tamanho - 1 - i; j++) {
+                model.Professor profA = listaInscritos.get(j);
+                model.Professor profB = listaInscritos.get(j + 1);
+                
+                if (profA.pontuacao < profB.pontuacao) {
+                    // Faz a troca dos dados diretamente alterando os atributos do objeto auxiliar
+                    String tempCpf = profA.cpf;
+                    String tempNome = profA.nome;
+                    String tempArea = profA.area;
+                    int tempPontos = profA.pontuacao;
+                    
+                    profA.cpf = profB.cpf;
+                    profA.nome = profB.nome;
+                    profA.area = profB.area;
+                    profA.pontuacao = profB.pontuacao;
+                    
+                    profB.cpf = tempCpf;
+                    profB.nome = tempNome;
+                    profB.area = tempArea;
+                    profB.pontuacao = tempPontos;
+                }
+            }
+        }
+        return listaInscritos;
+    }
 }
