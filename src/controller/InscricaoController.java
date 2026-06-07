@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import model.Inscricao;
+import model.Professor;
+import model.Disciplina;
 
 public class InscricaoController {
 
@@ -23,15 +25,55 @@ public class InscricaoController {
         }
     }
 
-    // 1. INSERÇÃO: Grava a nova inscrição no fim do arquivo CSV
     public void cadastrarInscricao(Inscricao inscricao) throws Exception {
+        if (inscricao.getCpfProfessor() == null || inscricao.getCpfProfessor().trim().isEmpty()) {
+            throw new Exception("O CPF do professor é obrigatório!");
+        }
+
+        // Verifica se o professor ja existe
+        ProfessorController profCtrl = new ProfessorController();
+        Fila<Professor> professores = profCtrl.listarProfessores();
+        boolean profExiste = false;
+        while (!professores.isEmpty()) {
+            if (professores.remove().getCpf().equals(inscricao.getCpfProfessor())) {
+                profExiste = true;
+                break;
+            }
+        }
+        if (!profExiste) {
+            throw new Exception("Erro de Integridade: Não existe nenhum professor com o CPF informado!");
+        }
+
+        // Verifica se a disciplina já existe
+        DisciplinaController dispCtrl = new DisciplinaController();
+        Fila<Disciplina> disciplinas = dispCtrl.listarDisciplinas();
+        boolean dispExiste = false;
+        while (!disciplinas.isEmpty()) {
+            if (disciplinas.remove().getCodigo() == inscricao.getCodigoDisciplina()) {
+                dispExiste = true;
+                break;
+            }
+        }
+        if (!dispExiste) {
+            throw new Exception("Erro de Integridade: Código de disciplina inexistente!");
+        }
+
+        // Validação de duplicados (Impede dupla inscrição no mesmo processo/disciplina)
+        Fila<Inscricao> inscricoesExistentes = listarInscricoes();
+        while (!inscricoesExistentes.isEmpty()) {
+            Inscricao cadastrada = inscricoesExistentes.remove();
+            if (cadastrada.getCpfProfessor().equals(inscricao.getCpfProfessor()) &&
+                cadastrada.getCodigoDisciplina() == inscricao.getCodigoDisciplina()) {
+                throw new Exception("O candidato já está inscrito nesta disciplina!");
+            }
+        }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, true))) {
             bw.write(inscricao.toString());
             bw.newLine();
         }
     }
 
-    // 2. CONSULTA: Popula uma FILA a partir do arquivo para listagem geral
     public Fila<Inscricao> listarInscricoes() throws Exception {
         Fila<Inscricao> fila = new Fila<>();
         File arquivo = new File(caminhoArquivo);
@@ -47,9 +89,9 @@ public class InscricaoController {
                 
                 String[] partes = linha.split(";");
                 Inscricao insc = new Inscricao();
-                insc.cpfProfessor = partes[0];
-                insc.codigoDisciplina = Integer.parseInt(partes[1]);
-                insc.codigoProcesso = Integer.parseInt(partes[2]);
+                insc.setCpfProfessor(partes[0]);
+                insc.setCodigoDisciplina(Integer.parseInt(partes[1]));
+                insc.setCodigoProcesso(Integer.parseInt(partes[2]));
                 
                 fila.insert(insc);
             }
@@ -57,24 +99,25 @@ public class InscricaoController {
         return fila;
     }
 
-    // 3. REMOÇÃO E ATUALIZAÇÃO: Envolve Lista Encadeada manual
     public void removerOuAtualizarInscricao(String cpfAlvo, int codigoDisciplinaAlvo, Inscricao inscAtualizada, boolean isRemocao) throws Exception {
+        String linha;
         ListaEncadeada<Inscricao> lista = new ListaEncadeada<>();
         
-        // Passo 1: Carrega todas as inscrições para a lista encadeada
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
-            String linha;
             while ((linha = br.readLine()) != null) {
                 if (linha.trim().isEmpty()) continue;
                 String[] partes = linha.split(";");
-                lista.addLast(new Inscricao(partes[0], Integer.parseInt(partes[1]), Integer.parseInt(partes[2])));
+                Inscricao ins = new Inscricao();
+                ins.setCpfProfessor(partes[0]);
+                ins.setCodigoDisciplina(Integer.parseInt(partes[1]));
+                ins.setCodigoProcesso(Integer.parseInt(partes[2]));
+                lista.addLast(ins);
             }
         }
 
-        // Passo 2: Procura a posição do elemento combinando o CPF e o Código da Disciplina
         int posicaoAlvo = -1;
         for (int i = 0; i < lista.size(); i++) {
-            if (lista.get(i).cpfProfessor.equals(cpfAlvo) && lista.get(i).codigoDisciplina == codigoDisciplinaAlvo) {
+            if (lista.get(i).getCpfProfessor().equals(cpfAlvo) && lista.get(i).getCodigoDisciplina() == codigoDisciplinaAlvo) {
                 posicaoAlvo = i;
                 break;
             }
@@ -84,15 +127,13 @@ public class InscricaoController {
             throw new Exception("Inscrição não encontrada!");
         }
 
-        // Passo 3: Aplica a operação na lista encadeada
         if (isRemocao) {
             lista.remove(posicaoAlvo);
         } else {
-            Inscricao existente = lista.get(posicaoAlvo);
-            existente.codigoProcesso = inscAtualizada.codigoProcesso;
+        	Inscricao existente = lista.get(posicaoAlvo);
+            existente.setCodigoProcesso(inscAtualizada.getCodigoProcesso());
         }
 
-        // Passo 4: Reescreve o arquivo CSV limpo sem deixar linhas vazias
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, false))) {
             for (int i = 0; i < lista.size(); i++) {
                 bw.write(lista.get(i).toString());
@@ -100,61 +141,55 @@ public class InscricaoController {
             }
         }
     }
-    
- // CONSULTA AVANÇADA: Retorna uma lista de professores inscritos ordenada por pontuação
-    public ListaEncadeada<model.Professor> listarInscritosOrdenados(int codigoDisciplinaAlvo) throws Exception {
-        ListaEncadeada<model.Professor> listaInscritos = new ListaEncadeada<>();
+
+    public ListaEncadeada<Professor> listarInscritosOrdenados(int codigoDisciplinaAlvo) throws Exception {
+        ListaEncadeada<Professor> listaInscritos = new ListaEncadeada<>();
         
-        // 1. Carrega todas as inscrições que batem com a disciplina escolhida
         Fila<Inscricao> todasInscricoes = listarInscricoes();
         ListaEncadeada<Inscricao> inscricoesFiltradas = new ListaEncadeada<>();
         
         while (!todasInscricoes.isEmpty()) {
             Inscricao insc = todasInscricoes.remove();
-            if (insc.codigoDisciplina == codigoDisciplinaAlvo) {
+            if (insc.getCodigoDisciplina() == codigoDisciplinaAlvo) {
                 inscricoesFiltradas.addLast(insc);
             }
         }
 
-        // 2. Para cada inscrição filtrada, busca os dados completos do professor no arquivo
         ProfessorController profCtrl = new ProfessorController();
         for (int i = 0; i < inscricoesFiltradas.size(); i++) {
-            String cpfInscrito = inscricoesFiltradas.get(i).cpfProfessor;
+            String cpfInscrito = inscricoesFiltradas.get(i).getCpfProfessor();
             
-            // Busca o professor na fila de professores
-            Fila<model.Professor> todosProfessores = profCtrl.listarProfessores();
+            Fila<Professor> todosProfessores = profCtrl.listarProfessores();
             while (!todosProfessores.isEmpty()) {
-                model.Professor prof = todosProfessores.remove();
-                if (prof.cpf.equals(cpfInscrito)) {
+                Professor prof = todosProfessores.remove();
+                if (prof.getCpf().equals(cpfInscrito)) {
                     listaInscritos.addLast(prof);
                     break;
                 }
             }
         }
 
-     // 3. Algoritmo de Ordenação Manual (Bubble Sort) - Decrescente
         int tamanho = listaInscritos.size();
         for (int i = 0; i < tamanho - 1; i++) {
             for (int j = 0; j < tamanho - 1 - i; j++) {
-                model.Professor profA = listaInscritos.get(j);
-                model.Professor profB = listaInscritos.get(j + 1);
+                Professor profA = listaInscritos.get(j);
+                Professor profB = listaInscritos.get(j + 1);
                 
-                if (profA.pontuacao < profB.pontuacao) {
-                    // Faz a troca dos dados diretamente alterando os atributos do objeto auxiliar
-                    String tempCpf = profA.cpf;
-                    String tempNome = profA.nome;
-                    String tempArea = profA.area;
-                    int tempPontos = profA.pontuacao;
+                if (profA.getPontuacao() < profB.getPontuacao()) {
+                    String tempCpf = profA.getCpf();
+                    String tempNome = profA.getNome();
+                    String tempArea = profA.getArea();
+                    int tempPontos = profA.getPontuacao();
                     
-                    profA.cpf = profB.cpf;
-                    profA.nome = profB.nome;
-                    profA.area = profB.area;
-                    profA.pontuacao = profB.pontuacao;
+                    profA.setCpf(profB.getCpf());
+                    profA.setNome(profB.getNome());
+                    profA.setArea(profB.getArea());
+                    profA.setPontuacao(profB.getPontuacao());
                     
-                    profB.cpf = tempCpf;
-                    profB.nome = tempNome;
-                    profB.area = tempArea;
-                    profB.pontuacao = tempPontos;
+                    profB.setCpf(tempCpf);
+                    profB.setNome(tempNome);
+                    profB.setArea(tempArea);
+                    profB.setPontuacao(tempPontos);
                 }
             }
         }

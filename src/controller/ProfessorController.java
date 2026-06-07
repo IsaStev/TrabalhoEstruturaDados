@@ -23,15 +23,26 @@ public class ProfessorController {
         }
     }
 
-    // 1. INSERÇÃO: Grava o novo professor no fim do arquivo CSV
     public void cadastrarProfessor(Professor professor) throws Exception {
+        if (professor.getCpf() == null || professor.getCpf().trim().isEmpty() ||
+            professor.getNome() == null || professor.getNome().trim().isEmpty() ||
+            professor.getArea() == null || professor.getArea().trim().isEmpty()) {
+            throw new Exception("Todos os campos do professor devem ser informados!");
+        }
+
+        Fila<Professor> fila = listarProfessores();
+        while (!fila.isEmpty()) {
+            if (fila.remove().getCpf().equals(professor.getCpf())) {
+                throw new Exception("Já existe um professor cadastrado com este CPF!");
+            }
+        }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, true))) {
             bw.write(professor.toString());
             bw.newLine();
         }
     }
 
-    // 2. CONSULTA: Popula uma FILA a partir do arquivo
     public Fila<Professor> listarProfessores() throws Exception {
         Fila<Professor> fila = new Fila<>();
         File arquivo = new File(caminhoArquivo);
@@ -47,10 +58,10 @@ public class ProfessorController {
                 
                 String[] partes = linha.split(";");
                 Professor prof = new Professor();
-                prof.cpf = partes[0];
-                prof.nome = partes[1];
-                prof.area = partes[2];
-                prof.pontuacao = Integer.parseInt(partes[3]);
+                prof.setCpf(partes[0]);
+                prof.setNome(partes[1]);
+                prof.setArea(partes[2]);
+                prof.setPontuacao(Integer.parseInt(partes[3]));
                 
                 fila.insert(prof);
             }
@@ -58,13 +69,11 @@ public class ProfessorController {
         return fila;
     }
 
-    // 3. REMOÇÃO E ATUALIZAÇÃO: Envolve Lista Encadeada manual
     public void removerOuAtualizarProfessor(String cpfAlvo, Professor profAtualizado, boolean isRemocao) throws Exception {
+        String linha;
         ListaEncadeada<Professor> lista = new ListaEncadeada<>();
         
-        // Passo 1: Carrega todos os professores para a lista encadeada
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
-            String linha;
             while ((linha = br.readLine()) != null) {
                 if (linha.trim().isEmpty()) continue;
                 String[] partes = linha.split(";");
@@ -72,10 +81,9 @@ public class ProfessorController {
             }
         }
 
-        // Passo 2: Procura a posição do elemento pelo CPF (String)
         int posicaoAlvo = -1;
         for (int i = 0; i < lista.size(); i++) {
-            if (lista.get(i).cpf.equals(cpfAlvo)) {
+            if (lista.get(i).getCpf().equals(cpfAlvo)) {
                 posicaoAlvo = i;
                 break;
             }
@@ -85,17 +93,18 @@ public class ProfessorController {
             throw new Exception("Professor não encontrado!");
         }
 
-        // Passo 3: Aplica a operação na lista encadeada
         if (isRemocao) {
             lista.remove(posicaoAlvo);
         } else {
+            if (profAtualizado.getNome() == null || profAtualizado.getNome().trim().isEmpty()) {
+                throw new Exception("Os campos modificados não podem ser vazios!");
+            }
             Professor existente = lista.get(posicaoAlvo);
-            existente.nome = profAtualizado.nome;
-            existente.area = profAtualizado.area;
-            existente.pontuacao = profAtualizado.pontuacao;
+            existente.setNome(profAtualizado.getNome());
+            existente.setArea(profAtualizado.getArea());
+            existente.setPontuacao(profAtualizado.getPontuacao());
         }
 
-        // Passo 4: Reescreve o arquivo CSV limpo
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, false))) {
             for (int i = 0; i < lista.size(); i++) {
                 bw.write(lista.get(i).toString());

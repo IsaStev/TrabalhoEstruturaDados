@@ -9,11 +9,9 @@ import model.Curso;
 
 public class CursoController {
 
-    // Caminho do arquivo baseado na pasta 'data' que criámos na raiz do projeto
     private final String caminhoArquivo = "data" + File.separator + "cursos.csv";
 
     public CursoController() {
-        // Garante que o arquivo exista ao iniciar o controlador
         try {
             File arquivo = new File(caminhoArquivo);
             arquivo.getParentFile().mkdirs();
@@ -25,16 +23,28 @@ public class CursoController {
         }
     }
 
-    // INSERÇÃO: Apenas grava o novo curso no final do arquivo CSV
     public void cadastrarCurso(Curso curso) throws Exception {
-        // true no FileWriter indica que irá acrescentar dados no fim (append)
+        // Validação de campos vazios
+        if (curso.getNome() == null || curso.getNome().trim().isEmpty() ||
+            curso.getAreaConhecimento() == null || curso.getAreaConhecimento().trim().isEmpty()) {
+            throw new Exception("Todos os campos do curso devem ser preenchidos!");
+        }
+
+        // Validação de duplicados (Chave primária)
+        Fila<Curso> cursosExistentes = listarCursos();
+        while (!cursosExistentes.isEmpty()) {
+            Curso cadastrado = cursosExistentes.remove();
+            if (cadastrado.getCodigo() == curso.getCodigo()) {
+                throw new Exception("Já existe um curso cadastrado com este código!");
+            }
+        }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, true))) {
             bw.write(curso.toString());
             bw.newLine();
         }
     }
 
-    // CONSULTA: Popular uma FILA a partir do arquivo
     public Fila<Curso> listarCursos() throws Exception {
         Fila<Curso> filaCursos = new Fila<>();
         File arquivo = new File(caminhoArquivo);
@@ -46,13 +56,13 @@ public class CursoController {
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
             String linha;
             while ((linha = br.readLine()) != null) {
-                if (linha.trim().isEmpty()) continue; // Ignora linhas em branco
+                if (linha.trim().isEmpty()) continue;
                 
                 String[] partes = linha.split(";");
                 Curso curso = new Curso();
-                curso.codigo = Integer.parseInt(partes[0]);
-                curso.nome = partes[1];
-                curso.areaConhecimento = partes[2];
+                curso.setCodigo(Integer.parseInt(partes[0]));
+                curso.setNome(partes[1]);
+                curso.setAreaConhecimento(partes[2]);
                 
                 filaCursos.insert(curso);
             }
@@ -60,26 +70,21 @@ public class CursoController {
         return filaCursos;
     }
 
-    // REMOÇÃO E ATUALIZAÇÃO:Envolve LISTA ENCADEADA evita linhas vazias
     public void removerOuAtualizarCurso(int codigoAlvo, Curso cursoAtualizado, boolean isRemocao) throws Exception {
         ListaEncadeada<Curso> lista = new ListaEncadeada<>();
         
-        // 1. Carrega todo o arquivo CSV para dentro da Lista Encadeada manual
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
             String linha;
             while ((linha = br.readLine()) != null) {
                 if (linha.trim().isEmpty()) continue;
-                
                 String[] partes = linha.split(";");
-                Curso curso = new Curso(Integer.parseInt(partes[0]), partes[1], partes[2]);
-                lista.addLast(curso);
+                lista.addLast(new Curso(Integer.parseInt(partes[0]), partes[1], partes[2]));
             }
         }
 
-        // 2. Procura a posição do elemento que queremos alterar/remover
         int posicaoAlvo = -1;
         for (int i = 0; i < lista.size(); i++) {
-            if (lista.get(i).codigo == codigoAlvo) {
+            if (lista.get(i).getCodigo() == codigoAlvo) {
                 posicaoAlvo = i;
                 break;
             }
@@ -89,17 +94,18 @@ public class CursoController {
             throw new Exception("Curso não encontrado!");
         }
 
-        // 3. Aplica a operação na Lista Encadeada
         if (isRemocao) {
             lista.remove(posicaoAlvo);
         } else {
-            // Atualização: substitui os dados na posição
+            if (cursoAtualizado.getNome() == null || cursoAtualizado.getNome().trim().isEmpty() ||
+                cursoAtualizado.getAreaConhecimento() == null || cursoAtualizado.getAreaConhecimento().trim().isEmpty()) {
+                throw new Exception("Os campos para atualização não podem ser vazios!");
+            }
             Curso cursoExistente = lista.get(posicaoAlvo);
-            cursoExistente.nome = cursoAtualizado.nome;
-            cursoExistente.areaConhecimento = cursoAtualizado.areaConhecimento;
+            cursoExistente.setNome(cursoAtualizado.getNome());
+            cursoExistente.setAreaConhecimento(cursoAtualizado.getAreaConhecimento());
         }
 
-        // 4. Reescreve o arquivo CSV do zero com o estado atual da lista - evita linhas vazias
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, false))) {
             for (int i = 0; i < lista.size(); i++) {
                 bw.write(lista.get(i).toString());

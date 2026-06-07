@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import model.Disciplina;
 import model.Inscricao;
+import model.Curso;
 
 public class DisciplinaController {
 
@@ -25,15 +26,41 @@ public class DisciplinaController {
         }
     }
 
-    // INSERÇÃO: Grava a nova disciplina no fim do arquivo CSV
     public void cadastrarDisciplina(Disciplina disciplina) throws Exception {
+        if (disciplina.getNome() == null || disciplina.getNome().trim().isEmpty() ||
+            disciplina.getDiaSemana() == null || disciplina.getDiaSemana().trim().isEmpty() ||
+            disciplina.getHorarioInicial() == null || disciplina.getHorarioInicial().trim().isEmpty()) {
+            throw new Exception("Todos os campos da disciplina devem ser preenchidos!");
+        }
+
+        // Verifica se o curso já existe
+        CursoController cursoCtrl = new CursoController();
+        Fila<Curso> cursos = cursoCtrl.listarCursos();
+        boolean cursoExiste = false;
+        while (!cursos.isEmpty()) {
+            if (cursos.remove().getCodigo() == disciplina.getCodigoCurso()) {
+                cursoExiste = true;
+                break;
+            }
+        }
+        if (!cursoExiste) {
+            throw new Exception("Erro de Integridade: O código do curso informado não existe!");
+        }
+
+        // Validação de duplicados
+        Fila<Disciplina> disciplinasExistentes = listarDisciplinas();
+        while (!disciplinasExistentes.isEmpty()) {
+            if (disciplinasExistentes.remove().getCodigo() == disciplina.getCodigo()) {
+                throw new Exception("Já existe uma disciplina cadastrada com este código!");
+            }
+        }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, true))) {
             bw.write(disciplina.toString());
             bw.newLine();
         }
     }
 
-    // CONSULTA: Popula uma FILA a partir do arquivo
     public Fila<Disciplina> listarDisciplinas() throws Exception {
         Fila<Disciplina> fila = new Fila<>();
         File arquivo = new File(caminhoArquivo);
@@ -49,12 +76,12 @@ public class DisciplinaController {
                 
                 String[] partes = linha.split(";");
                 Disciplina disp = new Disciplina();
-                disp.codigo = Integer.parseInt(partes[0]);
-                disp.nome = partes[1];
-                disp.diaSemana = partes[2];
-                disp.horarioInicial = partes[3];
-                disp.horasDiarias = Integer.parseInt(partes[4]);
-                disp.codigoCurso = Integer.parseInt(partes[5]);
+                disp.setCodigo(Integer.parseInt(partes[0]));
+                disp.setNome(partes[1]);
+                disp.setDiaSemana(partes[2]);
+                disp.setHorarioInicial(partes[3]);
+                disp.setHorasDiarias(Integer.parseInt(partes[4]));
+                disp.setCodigoCurso(Integer.parseInt(partes[5]));
                 
                 fila.insert(disp);
             }
@@ -62,13 +89,11 @@ public class DisciplinaController {
         return fila;
     }
 
-    // REMOÇÃO E ATUALIZAÇÃO: Envolve Lista Encadeada + Remoção em Cascata das Inscrições
     public void removerOuAtualizarDisciplina(int codigoAlvo, Disciplina dispAtualizada, boolean isRemocao) throws Exception {
+        String linha;
         ListaEncadeada<Disciplina> listaDisp = new ListaEncadeada<>();
         
-        // 1. Carrega as disciplinas para a lista encadeada
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
-            String linha;
             while ((linha = br.readLine()) != null) {
                 if (linha.trim().isEmpty()) continue;
                 String[] partes = linha.split(";");
@@ -76,10 +101,9 @@ public class DisciplinaController {
             }
         }
 
-        // 2. Procura a posição do elemento que queremos alterar/remover
         int posicaoAlvo = -1;
         for (int i = 0; i < listaDisp.size(); i++) {
-            if (listaDisp.get(i).codigo == codigoAlvo) {
+            if (listaDisp.get(i).getCodigo() == codigoAlvo) {
                 posicaoAlvo = i;
                 break;
             }
@@ -89,22 +113,21 @@ public class DisciplinaController {
             throw new Exception("Disciplina não encontrada!");
         }
 
-        // 3. Aplica a operação na lista de disciplinas
         if (isRemocao) {
             listaDisp.remove(posicaoAlvo);
-            
-            // Remoção em cascata no .csv
             removerInscricoesEmCascata(codigoAlvo);
         } else {
+            if (dispAtualizada.getNome() == null || dispAtualizada.getNome().trim().isEmpty()) {
+                throw new Exception("Campos obrigatórios não podem ficar vazios!");
+            }
             Disciplina existente = listaDisp.get(posicaoAlvo);
-            existente.nome = dispAtualizada.nome;
-            existente.diaSemana = dispAtualizada.diaSemana;
-            existente.horarioInicial = dispAtualizada.horarioInicial;
-            existente.horasDiarias = dispAtualizada.horasDiarias;
-            existente.codigoCurso = dispAtualizada.codigoCurso;
+            existente.setNome(dispAtualizada.getNome());
+            existente.setDiaSemana(dispAtualizada.getDiaSemana());
+            existente.setHorarioInicial(dispAtualizada.getHorarioInicial());
+            existente.setHorasDiarias(dispAtualizada.getHorasDiarias());
+            existente.setCodigoCurso(dispAtualizada.getCodigoCurso());
         }
 
-        // 4. Reescreve o arquivo de disciplinas limpo
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoArquivo, false))) {
             for (int i = 0; i < listaDisp.size(); i++) {
                 bw.write(listaDisp.get(i).toString());
@@ -113,32 +136,31 @@ public class DisciplinaController {
         }
     }
 
-    // Método auxiliar privado para limpar as inscrições vinculadas à disciplina excluída
     private void removerInscricoesEmCascata(int codigoDisciplinaAlvo) throws Exception {
         File arquivoInsc = new File(caminhoInscricoes);
         if (!arquivoInsc.exists()) return;
 
+        String linha;
         ListaEncadeada<Inscricao> listaInsc = new ListaEncadeada<>();
 
-        // Le todas as inscrições existentes
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoInscricoes))) {
-            String linha;
             while ((linha = br.readLine()) != null) {
                 if (linha.trim().isEmpty()) continue;
                 String[] partes = linha.split(";");
-                listaInsc.addLast(new Inscricao(partes[0], Integer.parseInt(partes[1]), Integer.parseInt(partes[2])));
+                Inscricao insc = new Inscricao();
+                insc.setCpfProfessor(partes[0]);
+                insc.setCodigoDisciplina(Integer.parseInt(partes[1]));
+                insc.setCodigoProcesso(Integer.parseInt(partes[2]));
+                listaInsc.addLast(insc);
             }
         }
 
-        // Remove da lista todas as que baterem com o código da disciplina apagada
-        // Varremos de trás para frente para não quebrar os índices ao remover itens
         for (int i = listaInsc.size() - 1; i >= 0; i--) {
-            if (listaInsc.get(i).codigoDisciplina == codigoDisciplinaAlvo) {
+            if (listaInsc.get(i).getCodigoDisciplina() == codigoDisciplinaAlvo) {
                 listaInsc.remove(i);
             }
         }
 
-        // Salva o arquivo de inscrições atualizado e limpo
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(caminhoInscricoes, false))) {
             for (int i = 0; i < listaInsc.size(); i++) {
                 bw.write(listaInsc.get(i).toString());
@@ -146,46 +168,39 @@ public class DisciplinaController {
             }
         }
     }
-    
-    // CONSULTA AVANÇADA: Popula e retorna a Tabela Hash com os processos ativos
+
     public TabelaHash listarProcessosAbertos() throws Exception {
         TabelaHash tabelaHash = new TabelaHash();
         InscricaoController inscCtrl = new InscricaoController();
         
-        // 1. Pega todas as inscrições ativas (da fila) e descobre os códigos das disciplinas
-        Fila<model.Inscricao> inscricoes = inscCtrl.listarInscricoes();
+        Fila<Inscricao> inscricoes = inscCtrl.listarInscricoes();
         ListaEncadeada<Integer> codigosAtivos = new ListaEncadeada<>();
         
         while (!inscricoes.isEmpty()) {
-            model.Inscricao insc = inscricoes.remove();
+            Inscricao insc = inscricoes.remove();
             
-            // Verifica se o código da disciplina já foi adicionado para evitar duplicados
             boolean jaExiste = false;
             for (int i = 0; i < codigosAtivos.size(); i++) {
-                if (codigosAtivos.get(i) == insc.codigoDisciplina) {
+                if (codigosAtivos.get(i) == insc.getCodigoDisciplina()) {
                     jaExiste = true;
                     break;
                 }
             }
             if (!jaExiste) {
-                codigosAtivos.addLast(insc.codigoDisciplina);
+                codigosAtivos.addLast(insc.getCodigoDisciplina());
             }
         }
 
-        // 2. Busca os dados completos de cada disciplina ativa e joga na Tabela Hash
         Fila<Disciplina> todasDisciplinas = listarDisciplinas();
         while (!todasDisciplinas.isEmpty()) {
             Disciplina disp = todasDisciplinas.remove();
-            
-            // Se o código da disciplina está na lista de ativos, insere na tabela hash
             for (int i = 0; i < codigosAtivos.size(); i++) {
-                if (codigosAtivos.get(i) == disp.codigo) {
+                if (codigosAtivos.get(i) == disp.getCodigo()) {
                     tabelaHash.put(disp);
                     break;
                 }
             }
         }
-
         return tabelaHash;
     }
 }
