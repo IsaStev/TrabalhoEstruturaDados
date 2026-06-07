@@ -7,7 +7,7 @@ public class Inscricao {
 
     public Inscricao() {}
 
-    // Construtor com parâmetros adicionado para seguir as boas práticas!
+    // Construtor com parâmetros
     public Inscricao(String cpfProfessor, int codigoDisciplina, int codigoProcesso) {
         this.cpfProfessor = cpfProfessor;
         this.codigoDisciplina = codigoDisciplina;
