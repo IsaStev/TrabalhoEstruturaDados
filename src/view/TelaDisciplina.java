@@ -46,7 +46,6 @@ public class TelaDisciplina extends JFrame {
         lblTitulo.setBounds(150, 11, 250, 25);
         contentPane.add(lblTitulo);
 
-        // --- CAMPOS DE TEXTO ---
         JLabel lblCodigo = new JLabel("Código:");
         lblCodigo.setBounds(30, 55, 100, 20);
         contentPane.add(lblCodigo);
@@ -95,7 +94,6 @@ public class TelaDisciplina extends JFrame {
         tfCodigoCurso.setBounds(370, 160, 90, 20);
         contentPane.add(tfCodigoCurso);
 
-        // --- LISTAGEM ---
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBounds(30, 260, 460, 170);
         contentPane.add(scrollPane);
@@ -104,7 +102,6 @@ public class TelaDisciplina extends JFrame {
         taLista.setEditable(false);
         scrollPane.setViewportView(taLista);
 
-        // --- AÇÕES DOS BOTÕES ---
         JButton btnCadastrar = new JButton("Cadastrar");
         btnCadastrar.setBounds(30, 210, 100, 30);
         contentPane.add(btnCadastrar);
@@ -112,18 +109,18 @@ public class TelaDisciplina extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     Disciplina d = new Disciplina();
-                    d.codigo = Integer.parseInt(tfCodigo.getText());
-                    d.nome = tfNome.getText();
-                    d.diaSemana = tfDiaSemana.getText();
-                    d.horarioInicial = tfHorario.getText();
-                    d.horasDiarias = Integer.parseInt(tfHorasDiarias.getText());
-                    d.codigoCurso = Integer.parseInt(tfCodigoCurso.getText());
+                    d.setCodigo(Integer.parseInt(tfCodigo.getText().trim()));
+                    d.setNome(tfNome.getText().trim());
+                    d.setDiaSemana(tfDiaSemana.getText().trim());
+                    d.setHorarioInicial(tfHorario.getText().trim());
+                    d.setHorasDiarias(Integer.parseInt(tfHorasDiarias.getText().trim()));
+                    d.setCodigoCurso(Integer.parseInt(tfCodigoCurso.getText().trim()));
                     
                     ctrl.cadastrarDisciplina(d);
                     JOptionPane.showMessageDialog(null, "Disciplina cadastrada com sucesso!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });
@@ -142,10 +139,10 @@ public class TelaDisciplina extends JFrame {
                     }
                     while (!fila.isEmpty()) {
                         Disciplina d = fila.remove();
-                        taLista.append("Cod: " + d.codigo + " | " + d.nome + " | " + d.diaSemana + " | " + d.horarioInicial + " | " + d.horasDiarias + "h | Curso: " + d.codigoCurso + "\n");
+                        taLista.append("Cod: " + d.getCodigo() + " | " + d.getNome() + " | " + d.getDiaSemana() + " | " + d.getHorarioInicial() + " | " + d.getHorasDiarias() + "h | Curso: " + d.getCodigoCurso() + "\n");
                     }
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, "Erro ao listar: " + ex.getMessage());
                 }
             }
         });
@@ -156,19 +153,19 @@ public class TelaDisciplina extends JFrame {
         btnAtualizar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    int codigoAlvo = Integer.parseInt(tfCodigo.getText());
+                    int codigoAlvo = Integer.parseInt(tfCodigo.getText().trim());
                     Disciplina d = new Disciplina();
-                    d.nome = tfNome.getText();
-                    d.diaSemana = tfDiaSemana.getText();
-                    d.horarioInicial = tfHorario.getText();
-                    d.horasDiarias = Integer.parseInt(tfHorasDiarias.getText());
-                    d.codigoCurso = Integer.parseInt(tfCodigoCurso.getText());
+                    d.setNome(tfNome.getText().trim());
+                    d.setDiaSemana(tfDiaSemana.getText().trim());
+                    d.setHorarioInicial(tfHorario.getText().trim());
+                    d.setHorasDiarias(Integer.parseInt(tfHorasDiarias.getText().trim()));
+                    d.setCodigoCurso(Integer.parseInt(tfCodigoCurso.getText().trim()));
                     
                     ctrl.removerOuAtualizarDisciplina(codigoAlvo, d, false);
                     JOptionPane.showMessageDialog(null, "Disciplina atualizada com sucesso!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });
@@ -179,12 +176,12 @@ public class TelaDisciplina extends JFrame {
         btnRemover.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    int codigoAlvo = Integer.parseInt(tfCodigo.getText());
+                    int codigoAlvo = Integer.parseInt(tfCodigo.getText().trim());
                     ctrl.removerOuAtualizarDisciplina(codigoAlvo, null, true);
-                    JOptionPane.showMessageDialog(null, "Disciplina removida (e inscrições limpas em cascata)!");
+                    JOptionPane.showMessageDialog(null, "Disciplina removida (inscrições limpas em cascata)!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });

@@ -43,7 +43,6 @@ public class TelaInscricao extends JFrame {
         lblTitulo.setBounds(130, 11, 260, 25);
         contentPane.add(lblTitulo);
 
-        // --- CAMPOS DE TEXTO ---
         JLabel lblCpf = new JLabel("CPF do Professor:");
         lblCpf.setBounds(30, 60, 130, 20);
         contentPane.add(lblCpf);
@@ -68,7 +67,6 @@ public class TelaInscricao extends JFrame {
         tfCodigoProcesso.setBounds(180, 130, 100, 20);
         contentPane.add(tfCodigoProcesso);
 
-        // --- ÁREA DE LISTAGEM ---
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBounds(30, 240, 430, 150);
         contentPane.add(scrollPane);
@@ -77,7 +75,6 @@ public class TelaInscricao extends JFrame {
         taLista.setEditable(false);
         scrollPane.setViewportView(taLista);
 
-        // --- BOTÃO INSCREVER (CADASTRAR) ---
         JButton btnInscrever = new JButton("Inscrever");
         btnInscrever.setBounds(30, 185, 95, 30);
         contentPane.add(btnInscrever);
@@ -85,20 +82,19 @@ public class TelaInscricao extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     Inscricao insc = new Inscricao();
-                    insc.cpfProfessor = tfCpfProfessor.getText().trim();
-                    insc.codigoDisciplina = Integer.parseInt(tfCodigoDisciplina.getText().trim());
-                    insc.codigoProcesso = Integer.parseInt(tfCodigoProcesso.getText().trim());
+                    insc.setCpfProfessor(tfCpfProfessor.getText().trim());
+                    insc.setCodigoDisciplina(Integer.parseInt(tfCodigoDisciplina.getText().trim()));
+                    insc.setCodigoProcesso(Integer.parseInt(tfCodigoProcesso.getText().trim()));
                     
                     ctrl.cadastrarInscricao(insc);
                     JOptionPane.showMessageDialog(null, "Professor inscrito com sucesso no processo!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });
 
-        // --- BOTÃO LISTAR GERAR ---
         JButton btnListar = new JButton("Listar");
         btnListar.setBounds(135, 185, 95, 30);
         contentPane.add(btnListar);
@@ -113,15 +109,14 @@ public class TelaInscricao extends JFrame {
                     }
                     while (!fila.isEmpty()) {
                         Inscricao insc = fila.remove();
-                        taLista.append("Processo: " + insc.codigoProcesso + " | Disciplina: " + insc.codigoDisciplina + " | CPF: " + insc.cpfProfessor + "\n");
+                        taLista.append("Processo: " + insc.getCodigoProcesso() + " | Disciplina: " + insc.getCodigoDisciplina() + " | CPF: " + insc.getCpfProfessor() + "\n");
                     }
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, "Erro ao listar: " + ex.getMessage());
                 }
             }
         });
 
-        // --- BOTÃO ATUALIZAR ---
         JButton btnAtualizar = new JButton("Atualizar");
         btnAtualizar.setBounds(240, 185, 95, 30);
         contentPane.add(btnAtualizar);
@@ -132,18 +127,17 @@ public class TelaInscricao extends JFrame {
                     int dispAlvo = Integer.parseInt(tfCodigoDisciplina.getText().trim());
                     
                     Inscricao insc = new Inscricao();
-                    insc.codigoProcesso = Integer.parseInt(tfCodigoProcesso.getText().trim());
+                    insc.setCodigoProcesso(Integer.parseInt(tfCodigoProcesso.getText().trim()));
                     
                     ctrl.removerOuAtualizarInscricao(cpfAlvo, dispAlvo, insc, false);
                     JOptionPane.showMessageDialog(null, "Inscrição atualizada!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });
 
-        // --- BOTÃO REFORMAR / REMOVER ---
         JButton btnRemover = new JButton("Remover");
         btnRemover.setBounds(345, 185, 95, 30);
         contentPane.add(btnRemover);
@@ -157,7 +151,7 @@ public class TelaInscricao extends JFrame {
                     JOptionPane.showMessageDialog(null, "Inscrição removida!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });

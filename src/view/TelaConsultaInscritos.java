@@ -81,7 +81,7 @@ public class TelaConsultaInscritos extends JFrame {
                     // Varre a lista encadeada já classificada
                     for (int i = 0; i < listaOrdenada.size(); i++) {
                         Professor p = listaOrdenada.get(i);
-                        taResultado.append((i + 1) + "º Lugar - Nota: " + p.pontuacao + " | " + p.nome + " (CPF: " + p.cpf + ")\n");
+                        taResultado.append((i + 1) + "º Lugar - Nota: " + p.getPontuacao() + " | " + p.getNome() + " (CPF: " + p.getCpf() + ")\n");
                     }
                     
                 } catch (Exception ex) {

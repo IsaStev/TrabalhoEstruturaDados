@@ -44,7 +44,6 @@ public class TelaProfessor extends JFrame {
         lblTitulo.setBounds(140, 11, 250, 25);
         contentPane.add(lblTitulo);
 
-        // --- CAMPOS DE TEXTO ---
         JLabel lblCpf = new JLabel("CPF (Apenas números):");
         lblCpf.setBounds(30, 60, 140, 20);
         contentPane.add(lblCpf);
@@ -77,7 +76,6 @@ public class TelaProfessor extends JFrame {
         tfPontuacao.setBounds(180, 165, 100, 20);
         contentPane.add(tfPontuacao);
 
-        // --- ÁREA DE LISTAGEM ---
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBounds(30, 260, 430, 130);
         contentPane.add(scrollPane);
@@ -86,7 +84,6 @@ public class TelaProfessor extends JFrame {
         taLista.setEditable(false);
         scrollPane.setViewportView(taLista);
 
-        // --- BOTÃO CADASTRAR ---
         JButton btnCadastrar = new JButton("Cadastrar");
         btnCadastrar.setBounds(30, 210, 95, 30);
         contentPane.add(btnCadastrar);
@@ -94,21 +91,20 @@ public class TelaProfessor extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     Professor p = new Professor();
-                    p.cpf = tfCpf.getText().trim();
-                    p.nome = tfNome.getText().trim();
-                    p.area = tfArea.getText().trim();
-                    p.pontuacao = Integer.parseInt(tfPontuacao.getText().trim());
+                    p.setCpf(tfCpf.getText().trim());
+                    p.setNome(tfNome.getText().trim());
+                    p.setArea(tfArea.getText().trim());
+                    p.setPontuacao(Integer.parseInt(tfPontuacao.getText().trim()));
                     
                     ctrl.cadastrarProfessor(p);
                     JOptionPane.showMessageDialog(null, "Professor cadastrado com sucesso!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });
 
-        // --- BOTÃO LISTAR (Usa Fila) ---
         JButton btnListar = new JButton("Listar");
         btnListar.setBounds(135, 210, 95, 30);
         contentPane.add(btnListar);
@@ -123,15 +119,14 @@ public class TelaProfessor extends JFrame {
                     }
                     while (!fila.isEmpty()) {
                         Professor p = fila.remove();
-                        taLista.append("CPF: " + p.cpf + " | " + p.nome + " | Área: " + p.area + " | Pontos: " + p.pontuacao + "\n");
+                        taLista.append("CPF: " + p.getCpf() + " | " + p.getNome() + " | Área: " + p.getArea() + " | Pontos: " + p.getPontuacao() + "\n");
                     }
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, "Erro ao listar: " + ex.getMessage());
                 }
             }
         });
 
-        // --- BOTÃO ATUALIZAR (Busca por CPF) ---
         JButton btnAtualizar = new JButton("Atualizar");
         btnAtualizar.setBounds(240, 210, 95, 30);
         contentPane.add(btnAtualizar);
@@ -140,20 +135,19 @@ public class TelaProfessor extends JFrame {
                 try {
                     String cpfAlvo = tfCpf.getText().trim();
                     Professor p = new Professor();
-                    p.nome = tfNome.getText().trim();
-                    p.area = tfArea.getText().trim();
-                    p.pontuacao = Integer.parseInt(tfPontuacao.getText().trim());
+                    p.setNome(tfNome.getText().trim());
+                    p.setArea(tfArea.getText().trim());
+                    p.setPontuacao(Integer.parseInt(tfPontuacao.getText().trim()));
                     
                     ctrl.removerOuAtualizarProfessor(cpfAlvo, p, false);
                     JOptionPane.showMessageDialog(null, "Dados do professor atualizados!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });
 
-        // --- BOTÃO REMOVER (Busca por CPF) ---
         JButton btnRemover = new JButton("Remover");
         btnRemover.setBounds(345, 210, 95, 30);
         contentPane.add(btnRemover);
@@ -165,7 +159,7 @@ public class TelaProfessor extends JFrame {
                     JOptionPane.showMessageDialog(null, "Professor removido do sistema!");
                     limparCampos();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Erro: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
         });

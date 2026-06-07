@@ -80,7 +80,8 @@ public class TelaConsultaProcessosAbertos extends JFrame {
                     
                     for (int i = 0; i < listaAtivos.size(); i++) {
                         Disciplina d = listaAtivos.get(i);
-                        taResultado.append("ID: " + d.codigo + " | " + d.nome + " (Curso: " + d.codigoCurso + ")\n");
+                        // CORREÇÃO: Usando os Getters
+                        taResultado.append("ID: " + d.getCodigo() + " | " + d.getNome() + " (Curso: " + d.getCodigoCurso() + ")\n");
                     }
                     
                     taResultado.append("------------------------------------------\n");
