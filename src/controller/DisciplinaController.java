@@ -145,4 +145,46 @@ public class DisciplinaController {
             }
         }
     }
+    
+    // CONSULTA AVANÇADA: Popula e retorna a Tabela Hash com os processos ativos
+    public TabelaHash listarProcessosAbertos() throws Exception {
+        TabelaHash tabelaHash = new TabelaHash();
+        InscricaoController inscCtrl = new InscricaoController();
+        
+        // 1. Pega todas as inscrições ativas (da fila) e descobre os códigos das disciplinas
+        Fila<model.Inscricao> inscricoes = inscCtrl.listarInscricoes();
+        ListaEncadeada<Integer> codigosAtivos = new ListaEncadeada<>();
+        
+        while (!inscricoes.isEmpty()) {
+            model.Inscricao insc = inscricoes.remove();
+            
+            // Verifica se o código da disciplina já foi adicionado para evitar duplicados
+            boolean jaExiste = false;
+            for (int i = 0; i < codigosAtivos.size(); i++) {
+                if (codigosAtivos.get(i) == insc.codigoDisciplina) {
+                    jaExiste = true;
+                    break;
+                }
+            }
+            if (!jaExiste) {
+                codigosAtivos.addLast(insc.codigoDisciplina);
+            }
+        }
+
+        // 2. Busca os dados completos de cada disciplina ativa e joga na Tabela Hash
+        Fila<Disciplina> todasDisciplinas = listarDisciplinas();
+        while (!todasDisciplinas.isEmpty()) {
+            Disciplina disp = todasDisciplinas.remove();
+            
+            // Se o código da disciplina está na lista de ativos, insere na tabela hash
+            for (int i = 0; i < codigosAtivos.size(); i++) {
+                if (codigosAtivos.get(i) == disp.codigo) {
+                    tabelaHash.put(disp);
+                    break;
+                }
+            }
+        }
+
+        return tabelaHash;
+    }
 }
