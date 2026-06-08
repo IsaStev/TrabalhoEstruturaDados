@@ -119,6 +119,8 @@ public class TelaDisciplina extends JFrame {
                     ctrl.cadastrarDisciplina(d);
                     JOptionPane.showMessageDialog(null, "Disciplina cadastrada com sucesso!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -164,6 +166,8 @@ public class TelaDisciplina extends JFrame {
                     ctrl.removerOuAtualizarDisciplina(codigoAlvo, d, false);
                     JOptionPane.showMessageDialog(null, "Disciplina atualizada com sucesso!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -180,6 +184,8 @@ public class TelaDisciplina extends JFrame {
                     ctrl.removerOuAtualizarDisciplina(codigoAlvo, null, true);
                     JOptionPane.showMessageDialog(null, "Disciplina removida (inscrições limpas em cascata)!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }

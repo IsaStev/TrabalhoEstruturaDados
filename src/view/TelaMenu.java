@@ -50,7 +50,7 @@ public class TelaMenu extends JFrame {
         // --- BOTÕES DOS CRUDS ---
 
         JButton btnCursos = new JButton("Gerenciar Cursos");
-        btnCursos.setBounds(35, 60, 160, 35);
+        btnCursos.setBounds(36, 79, 185, 35);
         contentPane.add(btnCursos);
         btnCursos.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -61,7 +61,7 @@ public class TelaMenu extends JFrame {
         });
 
         JButton btnDisciplinas = new JButton("Gerenciar Disciplinas");
-        btnDisciplinas.setBounds(35, 110, 160, 35);
+        btnDisciplinas.setBounds(36, 129, 185, 35);
         contentPane.add(btnDisciplinas);
         btnDisciplinas.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -71,7 +71,7 @@ public class TelaMenu extends JFrame {
         });
 
         JButton btnProfessores = new JButton("Gerenciar Professores");
-        btnProfessores.setBounds(35, 160, 160, 35);
+        btnProfessores.setBounds(36, 179, 185, 35);
         contentPane.add(btnProfessores);
         btnProfessores.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -81,7 +81,7 @@ public class TelaMenu extends JFrame {
         });
 
         JButton btnInscricoes = new JButton("Gerenciar Inscrições");
-        btnInscricoes.setBounds(35, 210, 160, 35);
+        btnInscricoes.setBounds(36, 229, 185, 35);
         contentPane.add(btnInscricoes);
         btnInscricoes.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -93,7 +93,7 @@ public class TelaMenu extends JFrame {
         // --- BOTÕES DAS CONSULTAS AVANÇADAS ---
 
         JButton btnConsInscritos = new JButton("Consulta Inscritos");
-        btnConsInscritos.setBounds(230, 85, 160, 45);
+        btnConsInscritos.setBounds(253, 104, 150, 45);
         contentPane.add(btnConsInscritos);
         btnConsInscritos.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -103,7 +103,7 @@ public class TelaMenu extends JFrame {
         });
 
         JButton btnConsProcessos = new JButton("Processos Abertos");
-        btnConsProcessos.setBounds(230, 160, 160, 45);
+        btnConsProcessos.setBounds(253, 179, 150, 45);
         contentPane.add(btnConsProcessos);
         btnConsProcessos.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

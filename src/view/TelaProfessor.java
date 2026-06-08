@@ -99,6 +99,8 @@ public class TelaProfessor extends JFrame {
                     ctrl.cadastrarProfessor(p);
                     JOptionPane.showMessageDialog(null, "Professor cadastrado com sucesso!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -142,6 +144,8 @@ public class TelaProfessor extends JFrame {
                     ctrl.removerOuAtualizarProfessor(cpfAlvo, p, false);
                     JOptionPane.showMessageDialog(null, "Dados do professor atualizados!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -155,6 +159,7 @@ public class TelaProfessor extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     String cpfAlvo = tfCpf.getText().trim();
+                    if (cpfAlvo.isEmpty()) throw new Exception("Informe o CPF para remover!");
                     ctrl.removerOuAtualizarProfessor(cpfAlvo, null, true);
                     JOptionPane.showMessageDialog(null, "Professor removido do sistema!");
                     limparCampos();

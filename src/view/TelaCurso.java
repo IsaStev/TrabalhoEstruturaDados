@@ -89,6 +89,8 @@ public class TelaCurso extends JFrame {
                     ctrl.cadastrarCurso(c);
                     JOptionPane.showMessageDialog(null, "Curso cadastrado com sucesso!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -133,6 +135,8 @@ public class TelaCurso extends JFrame {
                     ctrl.removerOuAtualizarCurso(codigoAlvo, novoCurso, false);
                     JOptionPane.showMessageDialog(null, "Curso atualizado com sucesso!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -150,6 +154,8 @@ public class TelaCurso extends JFrame {
                     ctrl.removerOuAtualizarCurso(codigoAlvo, null, true);
                     JOptionPane.showMessageDialog(null, "Curso removido com sucesso!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }

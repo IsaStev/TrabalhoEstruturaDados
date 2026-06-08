@@ -89,6 +89,8 @@ public class TelaInscricao extends JFrame {
                     ctrl.cadastrarInscricao(insc);
                     JOptionPane.showMessageDialog(null, "Professor inscrito com sucesso no processo!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -132,6 +134,8 @@ public class TelaInscricao extends JFrame {
                     ctrl.removerOuAtualizarInscricao(cpfAlvo, dispAlvo, insc, false);
                     JOptionPane.showMessageDialog(null, "Inscrição atualizada!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -145,11 +149,14 @@ public class TelaInscricao extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     String cpfAlvo = tfCpfProfessor.getText().trim();
+                    if(cpfAlvo.isEmpty()) throw new Exception("Informe o CPF e a Disciplina para remover.");
                     int dispAlvo = Integer.parseInt(tfCodigoDisciplina.getText().trim());
                     
                     ctrl.removerOuAtualizarInscricao(cpfAlvo, dispAlvo, null, true);
                     JOptionPane.showMessageDialog(null, "Inscrição removida!");
                     limparCampos();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Atenção: Os campos numéricos não podem ficar vazios e devem conter apenas números inteiros.");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }

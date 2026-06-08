@@ -1,6 +1,8 @@
 package view;
 
+import controller.CursoController;
 import controller.DisciplinaController;
+import controller.Fila;
 import controller.ListaEncadeada;
 import controller.TabelaHash;
 import java.awt.Font;
@@ -14,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
+import model.Curso;
 import model.Disciplina;
 
 public class TelaConsultaProcessosAbertos extends JFrame {
@@ -22,13 +25,12 @@ public class TelaConsultaProcessosAbertos extends JFrame {
     private JPanel contentPane;
     private JTextArea taResultado;
 
-    // Controlador que contém a lógica da Tabela Hash
     private DisciplinaController ctrl = new DisciplinaController();
 
     public TelaConsultaProcessosAbertos() {
         setTitle("Processos Seletivos Ativos — FATEC ZL");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 500, 400);
+        setBounds(100, 100, 520, 400);
         setLocationRelativeTo(null);
         
         contentPane = new JPanel();
@@ -38,16 +40,15 @@ public class TelaConsultaProcessosAbertos extends JFrame {
 
         JLabel lblTitulo = new JLabel("Disciplinas com Processos Abertos");
         lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 14));
-        lblTitulo.setBounds(110, 11, 280, 25);
+        lblTitulo.setBounds(120, 11, 280, 25);
         contentPane.add(lblTitulo);
 
         JLabel lblDescricao = new JLabel("Clique abaixo para carregar a Tabela Hash de processos ativos:");
-        lblDescricao.setBounds(30, 50, 420, 20);
+        lblDescricao.setBounds(30, 50, 440, 20);
         contentPane.add(lblDescricao);
 
-        // --- ÁREA DE EXIBIÇÃO ---
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(30, 120, 420, 210);
+        scrollPane.setBounds(30, 120, 440, 210);
         contentPane.add(scrollPane);
 
         taResultado = new JTextArea();
@@ -55,19 +56,15 @@ public class TelaConsultaProcessosAbertos extends JFrame {
         taResultado.setFont(new Font("Monospaced", Font.PLAIN, 12));
         scrollPane.setViewportView(taResultado);
 
-        // --- BOTÃO CONSULTAR (O coração da Tabela Hash) ---
         JButton btnCarregar = new JButton("Carregar via Tabela Hash");
-        btnCarregar.setBounds(130, 80, 220, 30);
+        btnCarregar.setBounds(140, 80, 220, 30);
         contentPane.add(btnCarregar);
         btnCarregar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    taResultado.setText(""); // Limpa a tela
+                    taResultado.setText(""); 
                     
-                    // 1. O Controlador gera a Tabela Hash em memória a partir dos arquivos
                     TabelaHash tabela = ctrl.listarProcessosAbertos();
-                    
-                    // 2. Extrai a lista de disciplinas da tabela
                     ListaEncadeada<Disciplina> listaAtivos = tabela.getAll();
                     
                     if (listaAtivos.isEmpty()) {
@@ -76,15 +73,29 @@ public class TelaConsultaProcessosAbertos extends JFrame {
                     }
                     
                     taResultado.append("Disciplinas identificadas no sistema:\n");
-                    taResultado.append("------------------------------------------\n");
+                    taResultado.append("--------------------------------------------------\n");
+                    
+                    CursoController cursoCtrl = new CursoController();
                     
                     for (int i = 0; i < listaAtivos.size(); i++) {
                         Disciplina d = listaAtivos.get(i);
-                        // CORREÇÃO: Usando os Getters
-                        taResultado.append("ID: " + d.getCodigo() + " | " + d.getNome() + " (Curso: " + d.getCodigoCurso() + ")\n");
+                        
+                        // Busca o nome do curso correspondente ao código da disciplina
+                        String nomeCurso = "Não encontrado";
+                        Fila<Curso> cursos = cursoCtrl.listarCursos();
+                        while (!cursos.isEmpty()) {
+                            Curso c = cursos.remove();
+                            if (c.getCodigo() == d.getCodigoCurso()) {
+                                nomeCurso = c.getNome();
+                                break;
+                            }
+                        }
+                        
+                        // Exibe o nome do curso por extenso na listagem
+                        taResultado.append("ID: " + d.getCodigo() + " | " + d.getNome() + " (Curso: " + nomeCurso + ")\n");
                     }
                     
-                    taResultado.append("------------------------------------------\n");
+                    taResultado.append("--------------------------------------------------\n");
                     taResultado.append("Consulta processada com sucesso via Hash.");
                     
                 } catch (Exception ex) {
